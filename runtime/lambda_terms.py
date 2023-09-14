@@ -44,6 +44,13 @@ class _DefaultNamesManager:
         return result
 
 
+_LambdaFunctionNode = _collections.namedtuple('LambdaFunctionNode', 'argument_name body')
+_VariableNode = _collections.namedtuple('VariableNode', 'name')
+_ApplicationNode = _collections.namedtuple('ApplicationNode', 'applied argument')
+
+_TermNode = (_LambdaFunctionNode, _VariableNode, _ApplicationNode)
+
+
 class _LambdaTerm:
 
     def __init__(self, node, *, term_builder, names_manager):
@@ -255,10 +262,3 @@ class _LambdaTerm:
 
     def _abstract_by(self, name):
         return self._term_builder.lambda_function(name, self)
-
-
-_LambdaFunctionNode = _collections.namedtuple('LambdaFunctionNode', 'argument_name body')
-_VariableNode = _collections.namedtuple('VariableNode', 'name')
-_ApplicationNode = _collections.namedtuple('ApplicationNode', 'applied argument')
-
-_TermNode = (_LambdaFunctionNode, _VariableNode, _ApplicationNode)
