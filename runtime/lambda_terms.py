@@ -48,7 +48,9 @@ _LambdaFunctionNode = _collections.namedtuple('LambdaFunctionNode', 'argument_na
 _VariableNode = _collections.namedtuple('VariableNode', 'name')
 _ApplicationNode = _collections.namedtuple('ApplicationNode', 'applied argument')
 
-_TermNode = (_LambdaFunctionNode, _VariableNode, _ApplicationNode)
+_RedirectNode = _collections.namedtuple('RedirectNode', 'target')
+
+_TermNode = (_LambdaFunctionNode, _VariableNode, _ApplicationNode, _RedirectNode)
 
 
 class _LambdaTerm:
@@ -99,7 +101,9 @@ class _LambdaTerm:
         terms_to_semi_reduce = targets_stack = [self]
         while targets_stack:
             term = targets_stack[-1]
-            if term._is_lambda_function_now() and not term._body._is_semi_reduced:
+            if term._is_redirection_now() and not term._without_redirects()._is_semi_reduced:
+                targets_stack.append(term._without_redirects())
+            elif term._is_lambda_function_now() and not term._body._is_semi_reduced:
                 targets_stack.append(term._body)
             elif term._is_application_now() and not term._applied._is_semi_reduced:
                 targets_stack.append(term._applied)
@@ -109,34 +113,58 @@ class _LambdaTerm:
                 term._is_semi_reduced = True
                 targets_stack.pop()
 
+    def _collapse_redirects(self):
+        if not self._is_redirection_now():
+            return self
+
+        latest_redirect = self
+        redirects_to_fix = []
+        while latest_redirect._node.target._is_redirection_now():
+            redirects_to_fix.append(latest_redirect)
+            latest_redirect = latest_redirect._node.target
+
+        target = latest_redirect._node.target
+        for redirect in redirects_to_fix:
+            redirect._node = _RedirectNode(target)
+
+        return target
+
+    _without_redirects = _collapse_redirects
+
+    def _node_without_redirects(self):
+        return self._without_redirects()._node
+
     def _is_lambda_function_now(self):
-        return isinstance(self._node, _LambdaFunctionNode)
+        return isinstance(self._node_without_redirects(), _LambdaFunctionNode)
 
     def _is_variable_now(self):
-        return isinstance(self._node, _VariableNode)
+        return isinstance(self._node_without_redirects(), _VariableNode)
 
     def _is_application_now(self):
-        return isinstance(self._node, _ApplicationNode)
+        return isinstance(self._node_without_redirects(), _ApplicationNode)
+
+    def _is_redirection_now(self):
+        return isinstance(self._node, _RedirectNode)
 
     @property
     def _argument_name(self):
-        return self._node.argument_name
+        return self._node_without_redirects().argument_name
 
     @property
     def _body(self):
-        return self._node.body
+        return self._node_without_redirects().body._without_redirects()
 
     @property
     def _name(self):
-        return self._node.name
+        return self._node_without_redirects().name
 
     @property
     def _applied(self):
-        return self._node.applied
+        return self._node_without_redirects().applied._without_redirects()
 
     @property
     def _argument(self):
-        return self._node.argument
+        return self._node_without_redirects().argument._without_redirects()
 
     def _find_names_depend_on(self):
         if self._is_variable_now():
@@ -158,7 +186,10 @@ class _LambdaTerm:
 
     def _reduce_by_one_step(self):
         reduced_by_one_step = self._get_reduced_by_one_step()
-        self._node = reduced_by_one_step._node
+        if reduced_by_one_step._is_application_now() and not reduced_by_one_step._is_redirection_now():
+            self._node = _RedirectNode(reduced_by_one_step)
+        else:
+            self._node = reduced_by_one_step._node
 
     def _get_reduced_by_one_step(self):
         assert self._can_do_outer_reduction()
