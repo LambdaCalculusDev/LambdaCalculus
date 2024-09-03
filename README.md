@@ -2,7 +2,7 @@
 
 λ-calculus is the simplest functional programming language.
 
-In λ-calculus, "function" means "abstraction from something". For example, instead of 2 + 1, you can write \\X. X + 1, and then substitute an arbitrary object for X.
+In λ-calculus, "function" means "abstraction from something". For example, instead of `2 + 1`, you can write `\X. X + 1`, and then substitute an arbitrary object for `X`.
 
 This concept of "function" (or, more correctly, "abstraction") is so fundamental, [every](https://en.wikipedia.org/wiki/Abstraction_principle_(computer_programming)) programming language implements it more or less explicitely, as it's necessary to avoid code duplication and allow code reuse. So, in some sense, λ-calculus directly follows from [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) itself.
 
