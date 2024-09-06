@@ -34,9 +34,7 @@ You can find more examples here: https://en.wikipedia.org/wiki/Church_encoding
 
 In general, a λ-program consists of several definitions followed by a main expression that is the target for evaluation.
 
-In fact, definitions (:=) are just syntactic sugar over λ-expressions, and they are not required at all.
-
-Their main purpose is to simplify the beginner experience.
+In fact, definitions (:=) are just syntactic sugar over λ-expressions, and they are not required at all. Their main purpose is to simplify the beginner experience.
 
 ### λ-expression
 
@@ -70,4 +68,4 @@ And that gives us a Turing-complete language.
 
 For example, if you type `(\x. \y. y) (...)`, the contents of `(...)` never matter or being touched. It's like an "if" statement with condition being false.
 
-Thus, only the necessary calculations occur, allowing us to work with infinite constructions that in other languages ​like Python would result in an endless loop.
+Thus, only the necessary calculations occur, allowing us to work with infinite constructions that in other languages like Python would result in an endless loop.
