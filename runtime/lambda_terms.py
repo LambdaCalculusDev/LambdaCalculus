@@ -113,9 +113,9 @@ class _LambdaTerm:
                 term._is_semi_reduced = True
                 targets_stack.pop()
 
-    def _collapse_redirects(self):
+    def _collapse_redirects_chain(self):
         if not self._is_redirection_now():
-            return self
+            raise RuntimeError
 
         latest_redirect = self
         redirects_to_fix = []
@@ -127,9 +127,11 @@ class _LambdaTerm:
         for redirect in redirects_to_fix:
             redirect._node = _RedirectNode(target)
 
-        return target
-
-    _without_redirects = _collapse_redirects
+    def _without_redirects(self):
+        if not self._is_redirection_now():
+            return self
+        self._collapse_redirects_chain()
+        return self._node.target
 
     def _node_without_redirects(self):
         return self._without_redirects()._node
