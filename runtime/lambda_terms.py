@@ -3,44 +3,49 @@ import collections as _collections
 
 class LambdaTermBuilder:
 
-    def __init__(self, names_manager=None):
-        if names_manager is None:
-            names_manager = _DefaultNamesManager()
-        self._names_manager = names_manager
+    def __init__(self, variable_names_manager=None):
+        if variable_names_manager is None:
+            variable_names_manager = _VariableNamesManager()
+        self._variable_names_manager = variable_names_manager
 
     def _term_from_node(self, node):
-        return _LambdaTerm(node, term_builder=self, names_manager=self._names_manager)
+        return _LambdaTerm(node, term_builder=self, variable_names_manager=self._variable_names_manager)
 
     def lambda_function(self, argument_name, lambda_body):
-        argument_name = self._names_manager.identifier_by_name(argument_name)
+        argument_name = self._variable_names_manager.identifier_by_name(argument_name)
         return self._term_from_node(_LambdaFunctionNode(argument_name, lambda_body))
 
     def variable(self, name):
-        name = self._names_manager.identifier_by_name(name)
+        name = self._variable_names_manager.identifier_by_name(name)
         return self._term_from_node(_VariableNode(name))
 
     def application(self, applied, argument):
         return self._term_from_node(_ApplicationNode(applied, argument))
 
 
-class _DefaultNamesManager:
+class _VariableNamesManager:
 
-    def __init__(self):
-        self._names_pool = set()
-        self._next_unused_id = 0
+    def __init__(self, varnames_pool=None, next_unused_id=None):
+        if varnames_pool is None:
+            varnames_pool = set()
+        self._varnames_pool = varnames_pool
+
+        if next_unused_id is None:
+            next_unused_id = 0
+        self._next_unused_id = next_unused_id
 
     def identifier_by_name(self, name):
-        self._names_pool.add(name)
+        self._varnames_pool.add(name)
         return name
 
     def name_by_identifier(self, identifier):
         return identifier
 
-    def create_new_identifier(self, old_identifier=None):
-        while str(self._next_unused_id) in self._names_pool:
+    def create_new_identifier(self, *, old_identifier=None):
+        while str(self._next_unused_id) in self._varnames_pool:
             self._next_unused_id += 1
         result = str(self._next_unused_id)
-        self._names_pool.add(result)
+        self._varnames_pool.add(result)
         return result
 
 
@@ -55,17 +60,17 @@ _TermNode = (_LambdaFunctionNode, _VariableNode, _ApplicationNode, _RedirectNode
 
 class _LambdaTerm:
 
-    def __init__(self, node, *, term_builder, names_manager):
+    def __init__(self, node, *, term_builder, variable_names_manager):
         if not isinstance(node, _TermNode):
             raise TypeError('invalid node type', type(node))
         self._term_builder = term_builder
-        self._names_manager = names_manager
+        self._variable_names_manager = variable_names_manager
         self._node = node
         self._is_semi_reduced = False
         self._names_depend_on = self._find_names_depend_on()
 
     def as_abstract_expression(self, expr_builder):
-        repr_name = self._names_manager.name_by_identifier
+        repr_name = self._variable_names_manager.name_by_identifier
 
         if self._is_variable_now():
             result = expr_builder.variable(repr_name(self._name))
@@ -231,7 +236,7 @@ class _LambdaTerm:
         lambdas_renamings = []
         for i, lambda_name in enumerate(bypassed_lambdas_names):
             if new_term_inside._may_depend_on_name(lambda_name):
-                new_lambda_name = self._names_manager.create_new_identifier(lambda_name)
+                new_lambda_name = self._variable_names_manager.create_new_identifier(lambda_name)
                 lambdas_renamings.append((lambda_name, new_lambda_name))
                 new_lambdas_names[i] = new_lambda_name
         return new_lambdas_names, lambdas_renamings
