@@ -1,11 +1,13 @@
 import collections as _collections
 
+import runtime.variable_names_manager as _variable_names_manager
+
 
 class LambdaTermBuilder:
 
     def __init__(self, variable_names_manager=None):
         if variable_names_manager is None:
-            variable_names_manager = _VariableNamesManager()
+            variable_names_manager = _variable_names_manager.VariableNamesManager()
         self._variable_names_manager = variable_names_manager
 
     def _term_from_node(self, node):
@@ -21,32 +23,6 @@ class LambdaTermBuilder:
 
     def application(self, applied, argument):
         return self._term_from_node(_ApplicationNode(applied, argument))
-
-
-class _VariableNamesManager:
-
-    def __init__(self, varnames_pool=None, next_unused_id=None):
-        if varnames_pool is None:
-            varnames_pool = set()
-        self._varnames_pool = varnames_pool
-
-        if next_unused_id is None:
-            next_unused_id = 0
-        self._next_unused_id = next_unused_id
-
-    def identifier_by_name(self, name):
-        self._varnames_pool.add(name)
-        return name
-
-    def name_by_identifier(self, identifier):
-        return identifier
-
-    def create_new_identifier(self, *, old_identifier=None):
-        while str(self._next_unused_id) in self._varnames_pool:
-            self._next_unused_id += 1
-        result = str(self._next_unused_id)
-        self._varnames_pool.add(result)
-        return result
 
 
 _LambdaFunctionNode = _collections.namedtuple('LambdaFunctionNode', 'argument_name body')
