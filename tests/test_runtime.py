@@ -33,6 +33,21 @@ class TestRuntime(unittest.TestCase):
 
         self._assert_terms_equal(main_term, expected_result)
 
+    def test_application_node_duplication_bug(self):
+        lam = self._term_builder.lambda_function
+        var = self._term_builder.variable
+        app = self._term_builder.application
+
+        identity = lam('x', var('x'))
+
+        reducible_application = app(identity, identity)
+
+        same_application = app(identity, reducible_application)
+
+        same_application.normalize()
+
+        self._assert_terms_equal(reducible_application, same_application)
+
     def _assert_terms_equal(self, term_a, term_b):
         expr_a = term_a.as_abstract_expression(self._json_expression_builder)
         expr_b = term_b.as_abstract_expression(self._json_expression_builder)
