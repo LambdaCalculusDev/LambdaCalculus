@@ -49,8 +49,8 @@ class TestRuntime(unittest.TestCase):
         self._assert_terms_equal(reducible_application, same_application)
 
     def _assert_terms_equal(self, term_a, term_b):
-        expr_a = term_a.as_abstract_expression(self._json_expression_builder)
-        expr_b = term_b.as_abstract_expression(self._json_expression_builder)
+        expr_a = term_a.as_abstract_expression(expr_builder=self._json_expression_builder)
+        expr_b = term_b.as_abstract_expression(expr_builder=self._json_expression_builder)
         self.assertEqual(expr_a, expr_b)
 
 

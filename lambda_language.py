@@ -30,7 +30,7 @@ class LambdaLanguage:
         return main_expression.reinterpret_using(self._term_builder)
 
     def represent_term(self, term):
-        expression = term.as_abstract_expression(self._expr_builder)
+        expression = term.as_abstract_expression(expr_builder=self._expr_builder)
         return self._expr_representer(expression)
 
     def _get_default_expr_builder(self):

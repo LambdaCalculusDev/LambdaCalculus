@@ -11,7 +11,7 @@ class LambdaTermBuilder:
         self._variable_names_manager = variable_names_manager
 
     def _term_from_node(self, node):
-        return _LambdaTerm(node, term_builder=self, variable_names_manager=self._variable_names_manager)
+        return _LambdaTerm(node=node, term_builder=self, variable_names_manager=self._variable_names_manager)
 
     def lambda_function(self, argument_name, lambda_body):
         argument_name = self._variable_names_manager.identifier_by_name(argument_name)
@@ -36,7 +36,7 @@ _TermNode = (_LambdaFunctionNode, _VariableNode, _ApplicationNode, _RedirectNode
 
 class _LambdaTerm:
 
-    def __init__(self, node, *, term_builder, variable_names_manager):
+    def __init__(self, *, node, term_builder, variable_names_manager):
         if not isinstance(node, _TermNode):
             raise TypeError('invalid node type', type(node))
         self._term_builder = term_builder
@@ -45,7 +45,7 @@ class _LambdaTerm:
         self._is_semi_reduced = False
         self._names_depend_on = self._find_names_depend_on()
 
-    def as_abstract_expression(self, expr_builder):
+    def as_abstract_expression(self, *, expr_builder):
         repr_name = self._variable_names_manager.name_by_identifier
 
         if self._is_variable_now():
@@ -54,13 +54,13 @@ class _LambdaTerm:
         elif self._is_lambda_function_now():
             result = expr_builder.lambda_function(
                 repr_name(self._argument_name),
-                self._body.as_abstract_expression(expr_builder)
+                self._body.as_abstract_expression(expr_builder=expr_builder)
             )
 
         elif self._is_application_now():
             result = expr_builder.application(
-                self._applied.as_abstract_expression(expr_builder),
-                self._argument.as_abstract_expression(expr_builder)
+                self._applied.as_abstract_expression(expr_builder=expr_builder),
+                self._argument.as_abstract_expression(expr_builder=expr_builder)
             )
 
         else:
@@ -212,7 +212,7 @@ class _LambdaTerm:
         lambdas_renamings = []
         for i, lambda_name in enumerate(bypassed_lambdas_names):
             if new_term_inside._may_depend_on_name(lambda_name):
-                new_lambda_name = self._variable_names_manager.create_new_identifier(lambda_name)
+                new_lambda_name = self._variable_names_manager.create_new_identifier(old_identifier=lambda_name)
                 lambdas_renamings.append((lambda_name, new_lambda_name))
                 new_lambdas_names[i] = new_lambda_name
         return new_lambdas_names, lambdas_renamings

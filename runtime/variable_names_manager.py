@@ -1,6 +1,6 @@
 class VariableNamesManager:
 
-    def __init__(self, varnames_pool=None, next_unused_id=None):
+    def __init__(self, *, varnames_pool=None, next_unused_id=None):
         if varnames_pool is None:
             varnames_pool = set()
         self._varnames_pool = varnames_pool
