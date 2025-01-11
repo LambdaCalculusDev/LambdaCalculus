@@ -48,6 +48,30 @@ class TestRuntime(unittest.TestCase):
 
         self._assert_terms_equal(reducible_application, same_application)
 
+    def test_alpha_conversion(self):
+        lam = self._term_builder.lambda_function
+        var = self._term_builder.variable
+        app = self._term_builder.application
+
+        # (\x. x x)
+        self_apply = lam('x', app(var('x'), var('x')))
+
+        # (\s. \a. s a)
+        thing_to_self_apply = lam('s', lam('a', app(var('s'), var('a'))))
+
+        # (\x. x x) (\s. \a. s a)
+        main_term = app(self_apply, thing_to_self_apply)
+
+        # (\x. x x) (\s. \a. s a)
+        # -> (\s. \a. s a) (\s. \a. s a)
+        # -> (\a. (\s. \a. s a) a)
+        # -> (\a. \a'. a a')
+        main_term.normalize()
+
+        expected_result = lam('a', lam('0', app(var('a'), var('0'))))
+
+        self._assert_terms_equal(main_term, expected_result)
+
     def _assert_terms_equal(self, term_a, term_b):
         expr_a = term_a.as_abstract_expression(expr_builder=self._json_expression_builder)
         expr_b = term_b.as_abstract_expression(expr_builder=self._json_expression_builder)
