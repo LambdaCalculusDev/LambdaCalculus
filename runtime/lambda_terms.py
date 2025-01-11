@@ -207,14 +207,14 @@ class _LambdaTerm:
 
         return inner_term._wrap_in_lambdas(new_lambdas_names)
 
-    def _rename_bypassed_lambdas(self, bypassed_lambdas_names, new_term_inside):
+    def _rename_bypassed_lambdas(self, bypassed_lambdas_names, term_arriving_inside):
         new_lambdas_names = list(bypassed_lambdas_names)
         lambdas_renamings = []
-        for i, lambda_name in enumerate(bypassed_lambdas_names):
-            if new_term_inside._may_depend_on_name(lambda_name):
+        for lambda_index, lambda_name in enumerate(bypassed_lambdas_names):
+            if term_arriving_inside._may_depend_on_name(lambda_name):
                 new_lambda_name = self._variable_names_manager.create_new_identifier(old_identifier=lambda_name)
                 lambdas_renamings.append((lambda_name, new_lambda_name))
-                new_lambdas_names[i] = new_lambda_name
+                new_lambdas_names[lambda_index] = new_lambda_name
         return new_lambdas_names, lambdas_renamings
 
     def _compose_new_inner_term(self, inner_term, target_name, target_substitution, lambdas_renamings):
